@@ -1,0 +1,20 @@
+.elevator{
+    height: 90%;
+    background-color: saddlebrown;
+    max-height: 300px;
+    border: 2px solid black;
+    position: relative;
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: center;
+    align-self: center;
+}
+
+.elevator::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 1px);
+    border-left: 2px solid black;
+}
