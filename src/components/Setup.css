@@ -1,0 +1,50 @@
+.setup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #c4cf8f;
+}
+
+.setup-div {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.setup-div label{
+    width: 100%;
+    margin: 0 10px;
+    padding: 5px;
+}
+
+.setup-form button, .setup-form input[type="submit"] {
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    margin: 0 15px 10px 15px;
+}
+
+.setup-form button:hover, .setup-form input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+input[type="number"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
