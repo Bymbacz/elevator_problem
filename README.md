@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+# Elevator System Simulator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description
+Project created with React to simulate an elevator system. After providing input data, the system will simulate the elevator's movements.
 
-## Available Scripts
+## Starting the project locally
+To start the project, you need to have Node.js installed. If you don't have it, you can download it [here](https://nodejs.org/en/).
 
-In the project directory, you can run:
+After installing Node.js, you can clone the project and run the following commands in the project's root directory:
+
+### `npm install`
+
+This command will install all the dependencies needed to run the project.\
+**It is important to note that this command must be run before starting the project.**
 
 ### `npm start`
 
-Runs the app in the development mode.\
+Runs the app on localhost.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The page will reload when you make changes.
 
-### `npm test`
+## Starting the project [online]
+The project is also available online on GitHub pages. You can access it [here](https://bymbacz.github.io/elevator_problem/).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Input data
+After starting the project, you will be asked to provide this input data:
+- ***Number of floors*** - the number of floors in the building (Note: the floors start from `0`, so if you enter `10`, the floors will be from `0` to `9`)
+- ***Number of elevators*** - the number of elevators in the building
+- ***Pickup floor*** - the floor from which the passenger wants to go
+- ***Destination floor*** - the floor to which the passenger wants to go
 
-### `npm run build`
+On the bottom you will find 2 buttons:
+- ***Add person*** - adds another `Pickup floor` and `Destination floor` to the list of requests
+- ***Start simulation*** - starts the simulation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Simulation
+After providing the input data and starting the simulation, you will see the elevator system in action. The system will simulate the elevator's movements and show you the current position of Elevators.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Algorithm
+When the simulation starts, the system assigns passengers from input data to the elevators. 
+The system searches if one of the elevators has a passenger with the same or smaller pickup floor than the passenger from the input data and the same or bigger destination floor (or in the other way, if person is going downwards). 
+If it finds one, it assigns the passenger to this elevator. 
+If it doesn't find any, it assigns the passenger to the elevator with the smallest number of passengers.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The movement algorithm delivers passengers in the same order as they were added to the system.\
+The elevator will also pick up passengers from the floors that are on the way to the destination floor.\
+The elevator will also drop off passengers on the floors that are on the way to the destination floor.
 
-### `npm run eject`
+Then we use `step()` function to simulate the elevator's movements. It works as follows:
+- use `pickup()` function to pick up passengers from the current floor (if there are any assigned to this elevator)
+- use `dropoff()` function to drop off passengers on the destination floor (if there are any currently in the elevator)
+- change the elevator's direction if it reaches the destination floor
+- use `update()` to move the elevator to the next floor
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The simulation ends when all passengers are delivered to their destination floors.

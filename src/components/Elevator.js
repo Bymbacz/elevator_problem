@@ -14,13 +14,6 @@ class Elevator extends React.Component {
         };
     }
 
-    // Function to add a person to the queue array in Elevator
-    addPersonToQueue = (pickupFloor, destinationFloor) => {
-        this.setState(prevState => ({
-            queue: [...prevState.queue, {pickupFloor, destinationFloor}]
-        }));
-    }
-
     // Function that returns the queue array in Elevator
     getQueue = () => {
         return this.state.queue;

@@ -1,7 +1,6 @@
 import React from "react";
 import Elevator from "./Elevator";
 import "./ElevatorSystem.css";
-import elevator from "./Elevator";
 
 class ElevatorSystem extends React.Component {
     constructor(props) {
@@ -90,6 +89,16 @@ class ElevatorSystem extends React.Component {
         }
     }
 
+    // Function to update the queue of an elevator
+    updateQueue = async (elevatorId, pickupFloor, destinationFloor) => {
+        const elevator = this.elevatorRefs[elevatorId - 1].current;
+        return new Promise(resolve => {
+            elevator.setState({
+                queue: [...elevator.state.queue, {pickupFloor, destinationFloor}]
+            }, resolve);
+        });
+    }
+
     // Function to simulate a step in the elevator system
     step = async () => {
         for (const  [index, elevatorRef] of this.elevatorRefs.entries()) {
@@ -148,14 +157,32 @@ class ElevatorSystem extends React.Component {
         let smallestQueueSize = Infinity;
 
         // Find the elevator with the smallest queue
-        this.elevatorRefs.forEach((elevatorRef, index) => {
+        for (let index = 0; index < this.elevatorRefs.length; index++) {
             const elevatorId = index + 1;
-            const elevatorQueue = elevatorRef.current.getQueue();
-            if (elevatorQueue.length < smallestQueueSize) {
-                smallestQueueSize = elevatorQueue.length;
+            const elevator = this.elevatorRefs[index].current;
+            const queue = elevator.getQueue();
+
+            // Check if there is a person inside the elevator whose pickup and destination floors are such that the current person can be picked up and dropped off between those floors
+            for (const person of queue) {
+
+                // Check for going up and down
+                if (pickupFloor <= destinationFloor){
+                    if (person.pickupFloor <= pickupFloor && person.destinationFloor >= destinationFloor) {
+                        return elevatorId;
+                    }
+                } else {
+                    if (person.pickupFloor >= pickupFloor && person.destinationFloor <= destinationFloor) {
+                        return elevatorId;
+                    }
+                }
+            }
+
+            // Find the elevator with the smallest queue
+            if (queue.length < smallestQueueSize) {
+                smallestQueueSize = queue.length;
                 bestElevatorId = elevatorId;
             }
-        });
+        }
 
         return bestElevatorId;
     }
@@ -169,8 +196,8 @@ class ElevatorSystem extends React.Component {
             const bestElevatorId = this.findBestElevator(pickupFloor, destinationFloor);
 
             // Add this person to the queue of the best elevator
-            const bestElevator = this.elevatorRefs[bestElevatorId - 1].current;
-            bestElevator.addPersonToQueue(pickupFloor, destinationFloor);
+            await this.updateQueue(bestElevatorId, pickupFloor, destinationFloor);
+
 
             // Remove the first person from the people array
             this.setState(prevState => ({
@@ -179,7 +206,11 @@ class ElevatorSystem extends React.Component {
                 this.processPeople();
             });
         } else {
-
+            this.elevatorRefs.forEach((elevatorRef, index) => {
+                const elevator = elevatorRef.current;
+                const queue = elevator.getQueue();
+                console.log(`Elevator ${index + 1} queue: `, queue);
+            });
             // Run the simulation until all elevators are empty
             while (this.elevatorRefs.some(elevatorRef => {
                 const elevator = elevatorRef.current;
