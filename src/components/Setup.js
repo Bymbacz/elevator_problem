@@ -84,7 +84,7 @@ class Setup extends React.Component {
                         <br/>
                         <div className="setup-div">
                             <button type="button" onClick={this.handleAddPerson}>Add person</button>
-                            <input type="submit" value="Submit" disabled={!this.isFormValid()}/>
+                            <input type="submit" value="Start simulation" disabled={!this.isFormValid()}/>
                         </div>
                     </form>
                 </div>
