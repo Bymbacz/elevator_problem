@@ -25,8 +25,8 @@ The project is also available online on GitHub pages. You can access it [here](h
 
 ## Input data
 After starting the project, you will be asked to provide this input data:
-- ***Number of floors*** - the number of floors in the building (Note: the floors start from `0`, so if you enter `10`, the floors will be from `0` to `9`)
-- ***Number of elevators*** - the number of elevators in the building
+- ***Number of floors*** - the number of floors in the building (Note: the floors start from `0`, so if you enter `10`, the floors will be from `0` to `9`). The min value is set to `1` and the max value is set to `10` for sake of display. of course, you can change it in the code, but the visualization may not be as good as it is now
+- ***Number of elevators*** - the number of elevators in the building. The min value is set to `1` and the max value is set to `16`
 - ***Pickup floor*** - the floor from which the passenger wants to go
 - ***Destination floor*** - the floor to which the passenger wants to go
 

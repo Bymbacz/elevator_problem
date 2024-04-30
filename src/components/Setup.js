@@ -67,7 +67,7 @@ class Setup extends React.Component {
                         <div className="setup-div">
                             <label>
                                 Number of elevators:
-                                <input type="number" name="elevators" min="0" max="16"
+                                <input type="number" name="elevators" min="1" max="16"
                                        onChange={event => this.setState({elevators: parseInt(event.target.value)})}/>
                             </label>
                             <label>
