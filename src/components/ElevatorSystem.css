@@ -2,3 +2,11 @@
     height: 100%;
     display: grid;
 }
+
+.grid-floor{
+    text-align: center;
+    justify-self: center;
+    align-self: center;
+    font-weight: bold;
+    font-size: 1.5em;
+}

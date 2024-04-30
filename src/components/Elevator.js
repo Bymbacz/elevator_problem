@@ -7,7 +7,7 @@ class Elevator extends React.Component {
         this.state = {
             id: props.id, // Add this line
             currentFloor: props.floor,
-            destinationFloor: 0,
+            destinationFloor: props.floor,
             queue: [], // Each person is an object {id: uniqueId, desiredFloor: floorNumber}
             maxFloor: props.maxFloor,
             minFloor: props.minFloor,
@@ -38,12 +38,14 @@ class Elevator extends React.Component {
         };
     }
 
-    pickup = async (pickupFloor, destinationFloor) => {
-        this.props.pickup(this.state.id, pickupFloor, destinationFloor );
+    pickup = (pickupFloor, destinationFloor) => {
+        this.setState(prevState => ({
+            people: [...prevState.people, {pickupFloor, destinationFloor}]
+        }));
     }
 
-    update = async (currentFloor, destinationFloor) => {
-        this.props.update(this.state.id, currentFloor, destinationFloor)
+    update = (currentFloor, destinationFloor) => {
+        this.props.update(this.state.id, currentFloor, destinationFloor);
     }
 
     moveUp = () => {
@@ -93,8 +95,6 @@ class Elevator extends React.Component {
     render() {
         return (
             <div className={`elevator elevator-${this.state.id} ${this.props.className}`} style={{gridRowStart: this.props.maxFloor - this.state.currentFloor + 1, gridRowEnd: this.props.maxFloor - this.state.currentFloor + 2, gridColumnStart: this.props.column}}>
-                <button onClick={this.moveUp}>Up</button>
-                <button onClick={this.moveDown}>Down</button>
             </div>
         );
     }

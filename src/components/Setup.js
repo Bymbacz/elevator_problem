@@ -8,7 +8,7 @@ class Setup extends React.Component {
             elevators: 0,
             floors: 0,
             setupComplete: false,
-            people: [[0,1],[0,2],[0,3],[1,3],[3,2],[1,2],[2,1]]
+            people: [[0,1],[0,2],[0,3],[1,3],[3,2],[2,1]]
         };
     }
 

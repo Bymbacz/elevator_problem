@@ -22,6 +22,7 @@ class ElevatorSystem extends React.Component {
         for (const  [index, elevatorRef] of this.elevatorRefs.entries()) {
             const elevator = elevatorRef.current;
             const currentFloor = elevator.state.currentFloor;
+            const destinationFloor = elevator.state.destinationFloor;
             const queue = elevator.getQueue();
             const people = elevator.getPeople();
 
@@ -29,28 +30,30 @@ class ElevatorSystem extends React.Component {
                 continue;
             }
 
-            // Wrap setState in a new Promise
+            console.log('People', people);
+            console.log('Queue', queue);
+
+            const peopleToPickup = queue.filter(person => person.pickupFloor === currentFloor);
+            console.log('People to pickup', peopleToPickup);
+            await new Promise(resolve => {
+                elevator.setState({
+                    people: [...people, ...peopleToPickup]
+                }, resolve);
+            })
+
+            const newPeople1 = elevator.getPeople();
+            console.log('People after pickup', newPeople1);
             await new Promise(resolve => {
                 elevator.setState({
                     queue: queue.filter(person => person.pickupFloor !== currentFloor)
                 }, resolve);
-            });
+            }).then(r => console.log('Queue after', elevator.getQueue()));
 
             await new Promise(resolve => {
                 elevator.setState({
-                    people: people.filter(person => person.destinationFloor !== currentFloor)
+                    people: newPeople1.filter(person => person.destinationFloor !== currentFloor)
                 }, resolve);
-            });
-
-            console.log('People', people);
-            console.log('NEW People', people.filter(person => person.destinationFloor !== currentFloor));
-
-            console.log('Queue', queue);
-            console.log('NEW Queue', queue.filter(person => person.pickupFloor !== currentFloor));
-            const peopleToPickup = queue.filter(person => person.pickupFloor === currentFloor);
-            for (const person of peopleToPickup) {
-               await elevator.pickup(person.pickupFloor, person.destinationFloor);
-            }
+            }).then(r => console.log('People after', elevator.getPeople()));
 
             const newPeople = elevator.getPeople();
             const newQueue = elevator.getQueue();
@@ -58,26 +61,32 @@ class ElevatorSystem extends React.Component {
             console.log('NEW NEW Queue', newQueue);
 
             console.log('Current floors', elevator.getStatus());
-            if (elevator.state.destinationFloor === currentFloor) {
+            if (destinationFloor === currentFloor) {
                 if (newPeople.length > 0) {
                     console.log('IF PEOPLE');
                     const nextDestination = newPeople[0].destinationFloor;
                     console.log('Next destination', nextDestination);
-                    await elevator.update(currentFloor, nextDestination);
+                    await new Promise(resolve => {
+                        elevator.setState({ destinationFloor: nextDestination, currentFloor: currentFloor}, resolve);
+                    });
+                    //await elevator.update(currentFloor, nextDestination);
                 } else if (newPeople.length === 0 && newQueue.length > 0) {
                     console.log('IF QUEUE');
-                    await elevator.update(currentFloor, newQueue[0].pickupFloor);
+                    await new Promise(resolve => {
+                        elevator.setState({ destinationFloor: newQueue[0].pickupFloor, currentFloor: currentFloor}, resolve);
+                    });
+                    //await elevator.update(currentFloor, newQueue[0].pickupFloor);
                 }
             }
             console.log('NEW Current floors', elevator.getStatus());
-
+            const newCurrentFloor = elevator.state.currentFloor;
+            const newDestinationFloor = elevator.state.destinationFloor;
             // Move the elevator
-            if (elevator.state.destinationFloor > currentFloor) {
+            if (newDestinationFloor > newCurrentFloor) {
                 elevator.moveUp();
-            } else if (elevator.state.destinationFloor < currentFloor) {
+            } else if (newDestinationFloor < newCurrentFloor) {
                 elevator.moveDown();
             }
-            console.log(newQueue);
             console.log(' ');
         }
     }
@@ -93,16 +102,6 @@ class ElevatorSystem extends React.Component {
             newElevatorStatus[elevatorId - 1].currentFloor = currentFloor;
             newElevatorStatus[elevatorId - 1].destinationFloor = destinationFloor;
             return { elevatorStatus: newElevatorStatus };
-        });
-    }
-
-    handlePickup = async (elevatorId, pickupFloor, destinationFloor) => {
-        const elevator = this.elevatorRefs[elevatorId - 1].current;
-        const people = elevator.getPeople();
-        const newPeople = [...people, {pickupFloor, destinationFloor}];
-
-        await new Promise(resolve => {
-            elevator.setState({ people: newPeople }, resolve);
         });
     }
 
@@ -176,8 +175,9 @@ class ElevatorSystem extends React.Component {
     }
 
     componentDidMount() {
-        this.processPeople();
-    }
+        this.processPeople().then(r =>
+            console.log('This is the end of the process.')
+        );}
 
     componentWillUnmount() {
     }
@@ -189,14 +189,9 @@ class ElevatorSystem extends React.Component {
                 gridTemplateRows: `repeat(${this.state.floors.length}, 1fr)`
             }}>
                 {[...this.state.floors].reverse().map((floor, i) =>
-                    <div key={i} style={{
+                    <div key={i} className={'grid-floor'} style={{
                         gridColumnStart: 1,
                         gridRowStart: i + 1,
-                        textAlign: 'center',
-                        justifySelf: 'center',
-                        alignSelf: 'center',
-                        fontStyle: 'bold',
-                        fontSize: '1.5em'
                     }}>
                         {floor}
                     </div>
@@ -213,7 +208,6 @@ class ElevatorSystem extends React.Component {
                             minFloor={this.props.minFloor}
                             maxFloor={this.props.maxFloor}
                             update={this.handleUpdate}
-                            pickup={this.handlePickup}
                             column={elevatorId + 1}
                         />
                     )
