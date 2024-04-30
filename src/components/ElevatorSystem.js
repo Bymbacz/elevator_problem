@@ -1,6 +1,7 @@
 import React from "react";
 import Elevator from "./Elevator";
 import "./ElevatorSystem.css";
+import elevator from "./Elevator";
 
 class ElevatorSystem extends React.Component {
     constructor(props) {
@@ -17,110 +18,136 @@ class ElevatorSystem extends React.Component {
         this.elevatorRefs = Array.from({length: this.props.elevators}, () => React.createRef());
     }
 
+    // Function to add a person to the people array in Elevator
+    pickup = async (elevatorId, destinationFloor) => {
+        const elevator = this.elevatorRefs[elevatorId - 1].current;
+        return new Promise(resolve => {
+            elevator.setState({
+                people: [...elevator.state.people, {pickupFloor: elevator.getCurrentFloor(), destinationFloor: destinationFloor}]
+            }, resolve)
+        });
+    }
+
+    // Function to update the current and destination floor of an elevator
+    update = async (elevatorID, currentFloor, destinationFloor) => {
+        const elevator = this.elevatorRefs[elevatorID - 1].current;
+
+        if (currentFloor > this.props.maxFloor || currentFloor < this.props.minFloor) {
+            alert('Used update function with invalid current floor -> out of range');
+            return -1;
+        }
+
+        if (destinationFloor > this.props.maxFloor || destinationFloor < this.props.minFloor) {
+            alert('Used update function with invalid destination floor -> out of range');
+            return -1;
+        }
+
+        this.setState(prevState => {
+            const updatedElevatorStatus = [...prevState.elevatorStatus];
+            updatedElevatorStatus[elevatorID - 1] = { currentFloor, destinationFloor };
+            return { elevatorStatus: updatedElevatorStatus };
+        });
+
+        return new Promise(resolve => {
+            elevator.setState({
+                currentFloor: currentFloor,
+                destinationFloor: destinationFloor
+            }, resolve);
+        });
+    }
+
+    // Function to remove all people from the people array in Elevator when they reach their destination
+    dropOff = async (elevatorId, currentFloor) => {
+        const elevator = this.elevatorRefs[elevatorId - 1].current;
+        return new Promise(resolve => {
+            elevator.setState({
+                people: elevator.getPeople().filter(person => person.destinationFloor !== currentFloor)
+            }, resolve);
+        });
+    }
+
+    // Function that returns the status of the elevators
+    status = () => {
+        return this.state.elevatorStatus;
+    }
+
+    // Function to delete the first person from the people/queue array in Elevator if they have an invalid destination floor
+    deleteValidPerson = async (elevatorId) => {
+        const elevator = this.elevatorRefs[elevatorId - 1].current;
+        if (elevator.getPeople()[0].destinationFloor > this.props.maxFloor || elevator.getPeople()[0].destinationFloor < this.props.minFloor) {
+            return new Promise(resolve => {
+                elevator.setState({
+                    people: elevator.getPeople().slice(1)
+                }, resolve);
+            });
+        }
+        if (elevator.getQueue()[0].pickupFloor > this.props.maxFloor || elevator.getQueue()[0].pickupFloor < this.props.minFloor) {
+            return new Promise(resolve => {
+                elevator.setState({
+                    queue: elevator.getQueue().slice(1)
+                }, resolve);
+            });
+        }
+    }
+
+    // Function to simulate a step in the elevator system
     step = async () => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
         for (const  [index, elevatorRef] of this.elevatorRefs.entries()) {
             const elevator = elevatorRef.current;
-            const currentFloor = elevator.state.currentFloor;
-            const destinationFloor = elevator.state.destinationFloor;
             const queue = elevator.getQueue();
             const people = elevator.getPeople();
 
+            // Skip if there are no people or queue
             if (queue.length === 0 && people.length === 0) {
                 continue;
             }
 
-            console.log('People', people);
-            console.log('Queue', queue);
+            // Pickup people
+            const peopleToPickup = queue.filter(person => person.pickupFloor === elevator.getCurrentFloor());
+            for (const person of peopleToPickup) {
+                await this.pickup(elevator.getId(), person.destinationFloor)
+            }
 
-            const peopleToPickup = queue.filter(person => person.pickupFloor === currentFloor);
-            console.log('People to pickup', peopleToPickup);
+            // Delete picked up people from the queue
             await new Promise(resolve => {
                 elevator.setState({
-                    people: [...people, ...peopleToPickup]
+                    queue: queue.filter(person => person.pickupFloor !== elevator.getCurrentFloor())
                 }, resolve);
-            })
+            });
 
-            const newPeople1 = elevator.getPeople();
-            console.log('People after pickup', newPeople1);
-            await new Promise(resolve => {
-                elevator.setState({
-                    queue: queue.filter(person => person.pickupFloor !== currentFloor)
-                }, resolve);
-            }).then(r => console.log('Queue after', elevator.getQueue()));
+            // Drop off people
+            await this.dropOff(elevator.getId(), elevator.getCurrentFloor());
 
-            await new Promise(resolve => {
-                elevator.setState({
-                    people: newPeople1.filter(person => person.destinationFloor !== currentFloor)
-                }, resolve);
-            }).then(r => console.log('People after', elevator.getPeople()));
-
-            const newPeople = elevator.getPeople();
-            const newQueue = elevator.getQueue();
-            console.log('NEW NEW People', newPeople);
-            console.log('NEW NEW Queue', newQueue);
-
-            console.log('Current floors', elevator.getStatus());
-            if (destinationFloor === currentFloor) {
-                if (newPeople.length > 0) {
-                    console.log('IF PEOPLE');
-                    const nextDestination = newPeople[0].destinationFloor;
-                    console.log('Next destination', nextDestination);
-                    await new Promise(resolve => {
-                        elevator.setState({ destinationFloor: nextDestination, currentFloor: currentFloor}, resolve);
-                    });
-                    //await elevator.update(currentFloor, nextDestination);
-                } else if (newPeople.length === 0 && newQueue.length > 0) {
-                    console.log('IF QUEUE');
-                    await new Promise(resolve => {
-                        elevator.setState({ destinationFloor: newQueue[0].pickupFloor, currentFloor: currentFloor}, resolve);
-                    });
-                    //await elevator.update(currentFloor, newQueue[0].pickupFloor);
+            // Change destination floor if needed
+            if (elevator.getDestinationFloor() === elevator.getCurrentFloor()) {
+                if (elevator.getPeople().length > 0) {
+                    const error = await this.update(elevator.getId(), elevator.getCurrentFloor(), elevator.getPeople()[0].destinationFloor);
+                    if (error === -1) {
+                        await this.deleteValidPerson(elevator.getId());
+                    }
+                } else if (elevator.getPeople().length === 0 && elevator.getQueue().length > 0) {
+                    const error = await this.update(elevator.getId(), elevator.getCurrentFloor(), elevator.getQueue()[0].pickupFloor);
+                    if (error === -1) {
+                        await this.deleteValidPerson(elevator.getId());
+                    }
                 }
             }
-            console.log('NEW Current floors', elevator.getStatus());
-            const newCurrentFloor = elevator.state.currentFloor;
-            const newDestinationFloor = elevator.state.destinationFloor;
+
             // Move the elevator
-            if (newDestinationFloor > newCurrentFloor) {
-                elevator.moveUp();
-            } else if (newDestinationFloor < newCurrentFloor) {
-                elevator.moveDown();
+            if (elevator.getDestinationFloor() > elevator.getCurrentFloor()) {
+                await this.update(elevator.getId(), elevator.getCurrentFloor() + 1, elevator.getDestinationFloor());
+            } else if (elevator.getDestinationFloor() < elevator.getCurrentFloor()) {
+                await this.update(elevator.getId(), elevator.getCurrentFloor() - 1, elevator.getDestinationFloor());
             }
-            console.log(' ');
         }
     }
 
-    handleUpdate = async (elevatorId, currentFloor, destinationFloor) => {
-        const elevator = this.elevatorRefs[elevatorId - 1].current;
-        await new Promise(resolve => {
-            elevator.setState({ destinationFloor: destinationFloor, currentFloor: currentFloor}, resolve);
-        });
-
-        this.setState(prevState => {
-            const newElevatorStatus = [...prevState.elevatorStatus];
-            newElevatorStatus[elevatorId - 1].currentFloor = currentFloor;
-            newElevatorStatus[elevatorId - 1].destinationFloor = destinationFloor;
-            return { elevatorStatus: newElevatorStatus };
-        });
-    }
-
-    handleFloorChange = (elevatorId, newFloor) => {
-        this.setState(prevState => {
-                const newElevatorStatus = [...prevState.elevatorStatus];
-                newElevatorStatus[elevatorId - 1].currentFloor = newFloor;
-                return { elevatorStatus: newElevatorStatus };
-        });
-    }
-
-    status = () => {
-        console.log('STATUS!!! ',this.state.elevatorStatus);
-    }
-
+    // Function to find the best elevator for a person
     findBestElevator = (pickupFloor, destinationFloor) => {
         let bestElevatorId = 1;
         let smallestQueueSize = Infinity;
 
+        // Find the elevator with the smallest queue
         this.elevatorRefs.forEach((elevatorRef, index) => {
             const elevatorId = index + 1;
             const elevatorQueue = elevatorRef.current.getQueue();
@@ -133,14 +160,7 @@ class ElevatorSystem extends React.Component {
         return bestElevatorId;
     }
 
-    logElevatorQueues = () => {
-        this.elevatorRefs.forEach((elevatorRef, index) => {
-            const elevatorId = index + 1;
-            const elevatorQueue = elevatorRef.current.getQueue();
-            console.log(`Elevator ${elevatorId} queue: `, elevatorQueue);
-        });
-    }
-
+    // Function to assign people from input to Elevators
     processPeople = async () => {
         if (this.state.people.length > 0) {
             const [pickupFloor, destinationFloor] = this.state.people[0];
@@ -159,29 +179,32 @@ class ElevatorSystem extends React.Component {
                 this.processPeople();
             });
         } else {
-            this.logElevatorQueues();
+
+            // Run the simulation until all elevators are empty
             while (this.elevatorRefs.some(elevatorRef => {
                 const elevator = elevatorRef.current;
                 const queue = elevator.getQueue();
                 const people = elevator.getPeople();
                 return queue.length > 0 || people.length > 0;
             })) {
-                console.log(' ');
-                console.log('Step');
+                // Wait for 1 second before running the next step
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Run the next step
                 await this.step();
-                this.status();
+
+                // Display the status of the elevators
+                console.log(this.status());
             }
         }
     }
 
+    // Run the processPeople function when the component mounts
     componentDidMount() {
-        this.processPeople().then(r =>
-            console.log('This is the end of the process.')
-        );}
-
-    componentWillUnmount() {
+        this.processPeople();
     }
 
+    // Render the ElevatorSystem component
     render() {
         return (
             <div className="grid-container" style={{
@@ -204,11 +227,9 @@ class ElevatorSystem extends React.Component {
                             key={elevatorId}
                             id={elevatorId}
                             floor={this.state.elevatorStatus[elevatorId - 1].currentFloor}
-                            onFloorChange={this.handleFloorChange}
-                            minFloor={this.props.minFloor}
-                            maxFloor={this.props.maxFloor}
-                            update={this.handleUpdate}
                             column={elevatorId + 1}
+                            maxFloor={this.props.maxFloor}
+                            minFloor={this.props.minFloor}
                         />
                     )
                 )}

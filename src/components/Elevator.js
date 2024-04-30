@@ -9,80 +9,55 @@ class Elevator extends React.Component {
             currentFloor: props.floor,
             destinationFloor: props.floor,
             queue: [], // Each person is an object {id: uniqueId, desiredFloor: floorNumber}
-            maxFloor: props.maxFloor,
-            minFloor: props.minFloor,
-            onFloorChange: props.onFloorChange,
             column: props.column,
             people: [],
         };
     }
 
+    // Function to add a person to the queue array in Elevator
     addPersonToQueue = (pickupFloor, destinationFloor) => {
         this.setState(prevState => ({
             queue: [...prevState.queue, {pickupFloor, destinationFloor}]
         }));
     }
 
+    // Function that returns the queue array in Elevator
     getQueue = () => {
         return this.state.queue;
     }
 
+    // Function that returns the people array in Elevator
     getPeople = () => {
         return this.state.people;
     }
 
-    getStatus = () => {
-        return {
-            currentFloor: this.state.currentFloor,
-            destinationFloor: this.state.destinationFloor
-        };
+    // Function that returns the id of the elevator
+    getId = () => {
+        return this.state.id;
     }
 
-    pickup = (pickupFloor, destinationFloor) => {
-        this.setState(prevState => ({
-            people: [...prevState.people, {pickupFloor, destinationFloor}]
-        }));
+    // Function that returns the current floor of the elevator
+    getCurrentFloor = () => {
+        return this.state.currentFloor;
     }
 
-    update = (currentFloor, destinationFloor) => {
-        this.props.update(this.state.id, currentFloor, destinationFloor);
+    // Function that returns the destination floor of the elevator
+    getDestinationFloor = () => {
+        return this.state.destinationFloor;
     }
 
-    moveUp = () => {
-        if (this.state.currentFloor < this.props.maxFloor) {
-            this.setState(
-                prevState => ({
-                    currentFloor: prevState.currentFloor + 1
-                }),
-                () => {
-                    this.props.onFloorChange(this.state.id, this.state.currentFloor);
-                }
-            );
-        }
-    }
-
-    moveDown = () => {
-        if (this.state.currentFloor > this.props.minFloor) {
-            this.setState(
-                prevState => ({
-                    currentFloor: prevState.currentFloor - 1
-                }),
-                () => {
-                    this.props.onFloorChange(this.state.id, this.state.currentFloor);
-                }
-            );
-        }
-    }
-
+    // Run updateDimensions when the component mounts and when the window is resized
     componentDidMount() {
         this.updateDimensions();
         window.addEventListener("resize", this.updateDimensions);
     }
 
+    // Remove the event listener when the component unmounts
     componentWillUnmount() {
         window.removeEventListener("resize", this.updateDimensions);
     }
 
+    // Function to update the width of the elevator to be half of its height
     updateDimensions = () => {
         const elevatorElements = document.querySelectorAll(`.elevator`);
         elevatorElements.forEach(elevatorElement => {
@@ -91,7 +66,7 @@ class Elevator extends React.Component {
         });
     }
 
-
+    // Render the Elevator component
     render() {
         return (
             <div className={`elevator elevator-${this.state.id} ${this.props.className}`} style={{gridRowStart: this.props.maxFloor - this.state.currentFloor + 1, gridRowEnd: this.props.maxFloor - this.state.currentFloor + 2, gridColumnStart: this.props.column}}>
