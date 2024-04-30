@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/elevator_problem/static/css/main.1a99a2ae.css",
+    "main.js": "/elevator_problem/static/js/main.a1def368.js",
+    "index.html": "/elevator_problem/index.html",
+    "main.1a99a2ae.css.map": "/elevator_problem/static/css/main.1a99a2ae.css.map",
+    "main.a1def368.js.map": "/elevator_problem/static/js/main.a1def368.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1a99a2ae.css",
+    "static/js/main.a1def368.js"
+  ]
+}
